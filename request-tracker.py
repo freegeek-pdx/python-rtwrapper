@@ -48,6 +48,23 @@ class MyTests(unittest.TestCase):
         else:
             has_results = False
         self.assertTrue(has_results)
+    def test_is_older(self):
+        result = self.rqt.is_older_than('pending', 3)
+        if len(result)>0:
+            has_results = True
+        else:
+            has_results = False
+        self.assertTrue(has_results)
+
+    def test_format_results(self):
+        older = self.rqt.is_older_than('pending', 3)
+        result = format_results(older, 'id', 'Subject')
+        if len(result)>0:
+            has_results = True
+        else:
+            has_results = False
+        self.assertTrue(has_results)
+
 
 class RT(rt.Rt):
     '''Extends rt.Rt Provides additional functions'''
@@ -156,14 +173,23 @@ class RT(rt.Rt):
         search_results = self.asearch('TechSupport', search_string) 
         return search_results
 
-
+def format_results(results, *args):
+    '''returns list of formatted lines for results
+    for fields defined in *args'''
+    output = []
+    for line in results:
+        outputline = []
+        for field in args:
+            if field == 'id':
+                tid = line['id'].split('/')
+                outputline.append(field +':' + tid[1] + ' ') 
+            else:
+                outputline.append(field +':' +  line[field] + ' ')
+        output.append(''.join(outputline))
+    return output
 
 if __name__ == "__main__":
-    #unittest.main()
+    unittest.main()
 
-    rqt = RT(rt_url, rt_user, rt_password)
-    rqt.login()
-    older = rqt.is_older_than('pending', 3)
-    for i in older:
-        tid = i['id'].split('/')
-        print( tid[1] +  ':' + i['Subject'])
+    #rqt = RT(rt_url, rt_user, rt_password)
+    #rqt.login()

@@ -48,6 +48,7 @@ class MyTests(unittest.TestCase):
         else:
             has_results = False
         self.assertTrue(has_results)
+
     def test_is_older(self):
         result = self.rqt.is_older_than('pending', 3)
         if len(result)>0:
@@ -69,7 +70,7 @@ class MyTests(unittest.TestCase):
 class RT(rt.Rt):
     '''Extends rt.Rt Provides additional functions'''
 
-    def asearch(self, Queue='TechSupport', *args):
+    def asearch(self, Queue=rt_queue, *args):
         """ Search in queue using arbitary strings so that you can
         pass search strings directly. Strings will be joined using AND
         but OR etc can be passed directly. Note you will need to use triple
@@ -138,7 +139,7 @@ class RT(rt.Rt):
         ''' Returns true if ticket number supplied exists in the 
         tech support queue'''
         try:
-            search_results = self.search('TechSupport',id=ticket)
+            search_results = self.search(rt_queue,id=ticket)
             if len(search_results) > 0:
                 return True
             else:
@@ -151,26 +152,25 @@ class RT(rt.Rt):
         tech support queue and is not resolved'''
         # the rt module doesn't work with e.g. Status!='resolved'
         # so this is a double test, checking if resolved
-        # if not check it is in tech support
+        # if not check it is in the tech support queue
         try:
             search_results = self.search('TechSupport',status='resolved', id=ticket)
             if len(search_results) > 0:
                 is_not_resolved = False
             else:
-                search_results = self.search('TechSupport', id=ticket)
+                search_results = self.search(rt_queue, id=ticket)
                 if len(search_results) > 0:
                     is_not_resolved = True
             return is_not_resolved
         except:
                 return False
 
-
     def is_older_than(self, statustype, days):
         today = datetime.date.today()
         timedelta = datetime.timedelta(days)
         cutoff = today - timedelta
         search_string = 'Status=\'' + statustype + '\'ANDLastUpdated<\'' + str(cutoff) + '\''
-        search_results = self.asearch('TechSupport', search_string) 
+        search_results = self.asearch(rt_queue, search_string) 
         return search_results
 
 def format_results(results, *args):

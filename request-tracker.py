@@ -4,6 +4,9 @@ import unittest
 import rt
 import datetime
 from datetime import timedelta
+import requests
+import os
+import re
 
 ########################################
 #           Configuration              #
@@ -38,8 +41,82 @@ class MyTests(unittest.TestCase):
         result = self.rqt.is_active_ticket('21950')
         self.assertFalse(result)
 
+    def test_asearch(self):
+        result = self.rqt.asearch('TechSupport',"""status='pending'""")
+        if len(result)>0:
+            has_results = True
+        else:
+            has_results = False
+        self.assertTrue(has_results)
+
 class RT(rt.Rt):
-    '''Extends rt. Provides additional functions''' 
+    '''Extends rt.Rt Provides additional functions'''
+
+    def asearch(self, Queue='TechSupport', *args):
+        """ Search in queue using arbitary strings so that you can
+        pass search strings directly. Strings will be joined using AND
+        but OR etc can be passed directly. Note you will need to use triple
+        quote strings in order to pass single quotes or escape them.
+
+        This is sort of a bad idea BECAUSE it's passing arbitary strings,
+        with no checking. You will need to ensure strings are valid before 
+        passing them in. Don't pass in any directly from user input.
+        Also I just cut and paste most of it from the orginal search 
+        function.
+        
+        :keyword Queue: Queue where to search
+        :keyword args: Other search strings to pass  
+
+        :returns: List of matching tickets. Each ticket is the same dictionary
+                  as in :py:meth:`~Rt.get_ticket`.
+        :raises Exception: Unexpected format of returned message.
+        """
+        query = 'search/ticket?query=(Queue=\'%s\')' % (Queue,)
+        for item in args:
+            query += "AND%s" % item
+        query += "&format=l"
+        # Accessing a private method from the parent here
+        # but whatever, I'm not going to write my own 
+        # to do exactly the same thing. This is really something
+        # that should go in the parent module.
+        msgs = self._Rt__request(query)
+        msgs = msgs.split('\n--\n')
+        
+        items = []
+        try:
+            if not hasattr(self, 'requestors_pattern'):
+                self.requestors_pattern = re.compile('Requestors:')
+            for i in range(len(msgs)):
+                pairs = {}
+                msg = msgs[i].split('\n')
+
+                req_id = [id for id in range(len(msg)) if self.requestors_pattern.match(msg[id]) is not None]
+                if len(req_id)==0:
+                    raise Exception('Non standard ticket.')
+                else:
+                    req_id = req_id[0]
+                for i in range(req_id):
+                    colon = msg[i].find(': ')
+                    if colon > 0:
+                        pairs[msg[i][:colon].strip()] = msg[i][colon+1:].strip()
+                requestors = [msg[req_id][12:]]
+                req_id += 1
+                while (req_id < len(msg)) and (msg[req_id][:12] == ' '*12):
+                    requestors.append(msg[req_id][12:])
+                    req_id += 1
+                pairs['Requestors'] = requestors
+                for i in range(req_id,len(msg)):
+                    colon = msg[i].find(': ')
+                    if colon > 0:
+                        pairs[msg[i][:colon].strip()] = msg[i][colon+1:].strip()
+                if len(pairs) > 0:
+                    items.append(pairs)    
+            return items
+        except:
+            return []
+
+
+
     def is_valid_ticket(self, ticket):
         ''' Returns true if ticket number supplied exists in the 
         tech support queue'''
@@ -72,13 +149,21 @@ class RT(rt.Rt):
 
 
     def is_older_than(self, statustype, days):
-        # Status = 'contact' AND LastUpdated < '2013-03-27' AND Queue = 'TechSupport'
-        today = datetime.datetime.today()
+        today = datetime.date.today()
         timedelta = datetime.timedelta(days)
         cutoff = today - timedelta
-        #search_results = self.search('TechSupport', status=statustype, LastUpdated<cutoff)
-        # return list of ids
+        search_string = 'Status=\'' + statustype + '\'ANDLastUpdated<\'' + str(cutoff) + '\''
+        search_results = self.asearch('TechSupport', search_string) 
+        return search_results
+
+
 
 if __name__ == "__main__":
-    unittest.main()
+    #unittest.main()
 
+    rqt = RT(rt_url, rt_user, rt_password)
+    rqt.login()
+    older = rqt.is_older_than('pending', 3)
+    for i in older:
+        tid = i['id'].split('/')
+        print( tid[1] +  ':' + i['Subject'])

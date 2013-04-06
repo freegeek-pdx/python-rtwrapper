@@ -1,28 +1,32 @@
 #!/usr/bin/env python
 import unittest
-#from  rt import RT as RequestTracker
 import rt
 import datetime
 from datetime import timedelta
 import requests
 import os
 import re
+import smtplib
+from email.mime.text import MIMEText
 
 ########################################
 #           Configuration              #
 ########################################
-
-rt_queue='TechSupport'
-rt_host='todo.freegeek.org'
-rt_user='tsrobot'
-rt_password='EucNabs4'
-rt_url='http://' + rt_host + '/REST/1.0/'
+rt_queue = 'TechSupport'
+rt_host = 'todo.freegeek.org'
+rt_user = 'tsrobot'
+rt_password = 'EucNabs4'
+rt_from = 'techsupportrobot@freegeek.org'
+rt_to = 'support-staff@freegeek.org'
+mail_host = 'mail.fglan'
+# email address for unit tests
+email = 'paulm@freegeek.org'
 ########## Configuration ends ##########
 
-#class RT(RequestTracker):
-#    '''Extends base class'''
-#    def foo():
-#        pass
+# Globals
+rt_url='http://' + rt_host + '/REST/1.0/'
+
+# unit tests
 
 class MyTests(unittest.TestCase):
     def setUp(self):
@@ -66,6 +70,21 @@ class MyTests(unittest.TestCase):
             has_results = False
         self.assertTrue(has_results)
 
+    def test_send_email(self):
+        #email = raw_input('Enter an email address to send a message to: ')
+        self.assertTrue(send_email(email, email, 'Test', 'Test  to if email gets sent'))
+
+    def test_email_results(self):
+        older = self.rqt.is_older_than('pending', 3)
+        result = format_results(older, 'id', 'Subject')
+        #email = raw_input('Enter an email address to send a message to: ')
+        email_results(email, email, 'Unit Test', result)
+        answer = raw_input('Did you receive an email with the subject: Unit test? [y/n] ')
+        regex = re.compile('y', re.I)
+        self.assertTrue(regex.match(answer))
+
+
+# Extended Class
 
 class RT(rt.Rt):
     '''Extends rt.Rt Provides additional functions'''
@@ -166,12 +185,16 @@ class RT(rt.Rt):
                 return False
 
     def is_older_than(self, statustype, days):
+        '''Returns a list of tickets (i.e. id, Subject etc)
+        with status [statustype], Last updated  [days] days ago '''
         today = datetime.date.today()
         timedelta = datetime.timedelta(days)
         cutoff = today - timedelta
         search_string = 'Status=\'' + statustype + '\'ANDLastUpdated<\'' + str(cutoff) + '\''
         search_results = self.asearch(rt_queue, search_string) 
         return search_results
+
+# Additional Functions
 
 def format_results(results, *args):
     '''returns list of formatted lines for results
@@ -187,6 +210,34 @@ def format_results(results, *args):
                 outputline.append(field +':' +  line[field] + ' ')
         output.append(''.join(outputline))
     return output
+
+def send_email(from_addr, mailto, subject, body):
+    msg = MIMEText(body)
+    msg['Subject'] = subject
+    msg['From'] = from_addr
+    msg['To'] = mailto
+    msg.add_header('X-Mailer', 'request-tracker.py')
+    msg.add_header('X-Sent-By-Robot', 'The city\'s central computer told you? R2D2, you know better than to trust a strange computer!')
+    s = smtplib.SMTP(mail_host)
+    try:
+        s.sendmail(from_addr, mailto, msg.as_string())
+        sent = True
+    except:
+        sent = False
+    s.quit()
+    if sent == True:
+        return True
+    else:
+        return False
+
+def email_results(from_addr, mailto, subject, body):
+    if send_email(from_addr, mailto, subject,  '\n'.join(body)):
+        return True
+    else:
+        return False
+    
+        
+# Main
 
 if __name__ == "__main__":
     unittest.main()

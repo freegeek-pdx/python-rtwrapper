@@ -15,7 +15,7 @@ from email.mime.text import MIMEText
 rt_queue = 'TechSupport'
 rt_host = 'todo.freegeek.org'
 rt_user = 'tsrobot'
-rt_password = 'EucNabs4'
+rt_password = ''
 rt_from = 'techsupportrobot@freegeek.org'
 rt_to = 'support-staff@freegeek.org'
 mail_host = 'mail.fglan'

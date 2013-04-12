@@ -7,46 +7,65 @@ import requests
 import os
 import re
 import smtplib
+import ConfigParser
 from email.mime.text import MIMEText
 
-########################################
-#           Configuration              #
-########################################
-rt_queue = 'TechSupport'
-rt_host = 'todo.freegeek.org'
-rt_user = 'tsrobot'
-rt_password = ''
-rt_from = 'techsupportrobot@freegeek.org'
-rt_to = 'support-staff@freegeek.org'
-mail_host = 'mail.fglan'
-# email address for unit tests
-email = 'paulm@freegeek.org'
-########## Configuration ends ##########
+#################################################
+#           Configuration                       #
+#                                               #
+#   The following globals can be set here,      #
+#   or in the calling script.                   #
+#   The load_config function is provided        #
+#   so you can load them in from a file.        #
+#                                               #
+#   -----------------------------------------   #
+#                                               #
+#  rt_queue = ''                                #  
+#  rt_host = ''                                 #
+#  rt_user = ''                                 #  
+#  rt_password = ''                             #
+#  rt_from = ''                                 # 
+#  rt_to = ''                                   #
+#  rt_url = 'http://' + rt_host + '/REST/1.0/'  #
+#  mail_host = ''                               #
+#  # email address for unit tests               #
+#  email = ''                                   #
+#                                               #
+#################################################
 
 # Globals
+rt_host = 'todo.freegeek.org'
 rt_url='http://' + rt_host + '/REST/1.0/'
 
 # unit tests
 
 class MyTests(unittest.TestCase):
     def setUp(self):
+        self.config = load_config('rt.cfg')
+        rt = self.config['rt']
+        rt_user = rt['rt_user']
+        rt_password = rt['rt_password']
+        self.rt_queue = rt['rt_queue']
+        mail = self.config['mail']
+        self.email = mail['email']
+        self.mailhost = mail['mail_host']
         self.rqt = RT(rt_url, rt_user, rt_password)
         self.rqt.login()
 
     def test_is_valid_ticket(self):
-        result = self.rqt.is_valid_ticket('34716')
+        result = self.rqt.is_valid_ticket(self.rt_queue, '34716')
         self.assertTrue(result)
 
     def test_is_active_ticket(self):
-        result = self.rqt.is_active_ticket('34716')
+        result = self.rqt.is_active_ticket(self.rt_queue, '34716')
         self.assertTrue(result)
     
     def test_is_active_ticket_false(self):
-        result = self.rqt.is_active_ticket('21950')
+        result = self.rqt.is_active_ticket(self.rt_queue, '21950')
         self.assertFalse(result)
 
     def test_asearch(self):
-        result = self.rqt.asearch('TechSupport',"""status='pending'""")
+        result = self.rqt.asearch(self.rt_queue, """status='pending'""")
         if len(result)>0:
             has_results = True
         else:
@@ -54,7 +73,7 @@ class MyTests(unittest.TestCase):
         self.assertTrue(has_results)
 
     def test_is_older(self):
-        result = self.rqt.is_older_than('pending', 3)
+        result = self.rqt.is_older_than(self.rt_queue, 'pending', 3)
         if len(result)>0:
             has_results = True
         else:
@@ -62,7 +81,7 @@ class MyTests(unittest.TestCase):
         self.assertTrue(has_results)
 
     def test_format_results(self):
-        older = self.rqt.is_older_than('pending', 3)
+        older = self.rqt.is_older_than(self.rt_queue, 'pending', 3)
         result = format_results(older, 'id', 'Subject')
         if len(result)>0:
             has_results = True
@@ -72,16 +91,19 @@ class MyTests(unittest.TestCase):
 
     def test_send_email(self):
         #email = raw_input('Enter an email address to send a message to: ')
-        self.assertTrue(send_email(email, email, 'Test', 'Test  to if email gets sent'))
+        self.assertTrue(send_email(self.mailhost, self.email, self.email, 'Test', 'Test  to if email gets sent'))
 
     def test_email_results(self):
-        older = self.rqt.is_older_than('pending', 3)
+        older = self.rqt.is_older_than(self.rt_queue, 'pending', 3)
         result = format_results(older, 'id', 'Subject')
         #email = raw_input('Enter an email address to send a message to: ')
-        email_results(email, email, 'Unit Test', result)
+        email_results(self.mailhost, self.email, self.email, 'Unit Test', result)
         answer = raw_input('Did you receive an email with the subject: Unit test? [y/n] ')
         regex = re.compile('y', re.I)
         self.assertTrue(regex.match(answer))
+
+    def test_load_config(self):
+        pass
 
 
 # Extended Class
@@ -89,7 +111,7 @@ class MyTests(unittest.TestCase):
 class RT(rt.Rt):
     '''Extends rt.Rt Provides additional functions'''
 
-    def asearch(self, Queue=rt_queue, *args):
+    def asearch(self, Queue, *args):
         """ Search in queue using arbitary strings so that you can
         pass search strings directly. Strings will be joined using AND
         but OR etc can be passed directly. Note you will need to use triple
@@ -154,11 +176,11 @@ class RT(rt.Rt):
 
 
 
-    def is_valid_ticket(self, ticket):
+    def is_valid_ticket(self, queue, ticket):
         ''' Returns true if ticket number supplied exists in the 
         tech support queue'''
         try:
-            search_results = self.search(rt_queue,id=ticket)
+            search_results = self.search(queue,id=ticket)
             if len(search_results) > 0:
                 return True
             else:
@@ -166,7 +188,7 @@ class RT(rt.Rt):
         except:
                 return False
 
-    def is_active_ticket(self, ticket):
+    def is_active_ticket(self, queue, ticket):
         '''Returns true if ticket number supplied exists in the 
         tech support queue and is not resolved'''
         # the rt module doesn't work with e.g. Status!='resolved'
@@ -177,21 +199,21 @@ class RT(rt.Rt):
             if len(search_results) > 0:
                 is_not_resolved = False
             else:
-                search_results = self.search(rt_queue, id=ticket)
+                search_results = self.search(queue, id=ticket)
                 if len(search_results) > 0:
                     is_not_resolved = True
             return is_not_resolved
         except:
                 return False
 
-    def is_older_than(self, statustype, days):
+    def is_older_than(self, queue, statustype, days):
         '''Returns a list of tickets (i.e. id, Subject etc)
         with status [statustype], Last updated  [days] days ago '''
         today = datetime.date.today()
         timedelta = datetime.timedelta(days)
         cutoff = today - timedelta
         search_string = 'Status=\'' + statustype + '\'ANDLastUpdated<\'' + str(cutoff) + '\''
-        search_results = self.asearch(rt_queue, search_string) 
+        search_results = self.asearch(queue, search_string) 
         return search_results
 
 # Additional Functions
@@ -211,7 +233,7 @@ def format_results(results, *args):
         output.append(''.join(outputline))
     return output
 
-def send_email(from_addr, mailto, subject, body):
+def send_email(mail_host, from_addr, mailto, subject, body):
     msg = MIMEText(body)
     msg['Subject'] = subject
     msg['From'] = from_addr
@@ -230,17 +252,30 @@ def send_email(from_addr, mailto, subject, body):
     else:
         return False
 
-def email_results(from_addr, mailto, subject, body):
-    if send_email(from_addr, mailto, subject,  '\n'.join(body)):
+def email_results(mailhost, from_addr, mailto, subject, body):
+    if send_email(mailhost, from_addr, mailto, subject,  '\n'.join(body)):
         return True
     else:
         return False
     
-        
+
+def load_config(config_file = None):
+    '''Reads in configuration file.'''
+    config = ConfigParser.SafeConfigParser()
+    config.read(config_file)
+    configlist = {}
+    for section in config.sections():
+        configlist[section] = {}
+        for name, value in config.items(section):
+            configlist[section].update({name: value})
+    return configlist
 # Main
 
 if __name__ == "__main__":
     unittest.main()
-
+    #config = load_config('rt.cfg')
+    #rt = config['rt']
+    #rt_user = rt['rt_user']
+    #print rt_user
     #rqt = RT(rt_url, rt_user, rt_password)
     #rqt.login()

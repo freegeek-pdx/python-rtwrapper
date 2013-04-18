@@ -1,0 +1,15 @@
+>>> import rt
+>>> tracker = rt.Rt('http://localhost/rt/REST/1.0/', 'user_login', 'user_pass')
+>>> tracker.login()
+True
+>>> map(lambda x: x['id'], tracker.search(Queue='helpdesk', Status='open'))
+['ticket/1', 'ticket/2', 'ticket/10', 'ticket/15']
+>>> tracker.create_ticket(Queue='helpdesk', \
+... Subject='Coffee (important)', Text='Help I Ran Out of Coffee!')
+19
+>>> tracker.edit_ticket(19, Requestors='addicted@example.com')
+True
+>>> tracker.reply(19, text='Do you know Starbucks?')
+True
+>>> tracker.logout()
+True

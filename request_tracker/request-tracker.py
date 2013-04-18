@@ -4,8 +4,6 @@
 import unittest
 import rt
 import datetime
-#from datetime import timedelta
-#import requests
 import os
 import re
 import smtplib

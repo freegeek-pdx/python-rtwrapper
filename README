@@ -1,6 +1,0 @@
-Requirements:
-
-python modules
-==============
-requests: apt-get install python-requests
-python rt: https://redmine.labs.nic.cz/projects/python-rt

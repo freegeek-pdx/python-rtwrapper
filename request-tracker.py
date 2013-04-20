@@ -94,6 +94,15 @@ class MyTests(unittest.TestCase):
             has_results = False
         self.assertTrue(has_results)
 
+    def test_last_updated_by_field_status_active(self):
+        result = self.rqt.last_updated_by_field(self.rt_queue, 'active', 'Owner', 'nobody', 0)
+        if len(result)>0:
+            has_results = True
+        else:
+            has_results = False
+        self.assertTrue(has_results)
+
+ 
     def test_last_updated_by_field_custom(self):
         result = self.rqt.last_updated_by_field(self.rt_queue, 'open', 'CF.{Ticket Source}', 'Box Brought In', 0) 
         if len(result)>0:

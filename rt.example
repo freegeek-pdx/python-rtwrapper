@@ -1,15 +1,17 @@
->>> import rt
->>> tracker = rt.Rt('http://localhost/rt/REST/1.0/', 'user_login', 'user_pass')
->>> tracker.login()
-True
->>> map(lambda x: x['id'], tracker.search(Queue='helpdesk', Status='open'))
-['ticket/1', 'ticket/2', 'ticket/10', 'ticket/15']
->>> tracker.create_ticket(Queue='helpdesk', \
-... Subject='Coffee (important)', Text='Help I Ran Out of Coffee!')
-19
->>> tracker.edit_ticket(19, Requestors='addicted@example.com')
-True
->>> tracker.reply(19, text='Do you know Starbucks?')
-True
->>> tracker.logout()
-True
+import request-tracker
+
+if __name__ == "__main__":
+    config = load_config('rt.cfg')
+    rtconf = config['rt']
+    rt_user = rtconf['rt_user']
+    rt_password = rtconf['rt_password']
+    rt_queue = rtconf['rt_queue']
+    mail = config['mail']
+    email = mail['email']
+    mailhost = mail['mail_host']
+    rqt = RT(RT_URL, rt_user, rt_password)
+    rqt.login()
+    
+    print(rqt.get_status(34716))
+    rqt.add_comment(34716,'testi comment') 
+    print(rqt.last_updated_by_field(rt_queue, 'new', 'Owner', 'nobody', 1))

@@ -119,6 +119,15 @@ class MyTests(unittest.TestCase):
         else:
             has_results = False
         self.assertTrue(has_results)
+    
+    def test_get_id_list(self):
+        older = self.rqt.last_updated_by_status(self.rt_queue, 'pending', 3)
+        result = get_id_list(older)
+        if len(result)>0:
+            has_results = True
+        else:
+            has_results = False
+        self.assertTrue(has_results)
 
     def test_send_email(self):
         #email = raw_input('Enter an email address to send a message to: ')
@@ -349,6 +358,15 @@ def format_results(results, *args):
                 outputline.append(field +':' +  line[field] + ' ')
         output.append(''.join(outputline))
     return output
+
+def get_id_list(results):
+    '''returns list of id's in results'''
+    output = []
+    for line in results:
+        tid = line['id'].split('/')
+        output.append(tid[1]) 
+    return output
+
 
 def send_email(mail_host, from_addr, mailto, subject, body):
     '''sends an email'''

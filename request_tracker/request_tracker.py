@@ -37,6 +37,8 @@ from email.mime.text import MIMEText
 # Globals
 RT_HOST = 'todo.freegeek.org'
 RT_URL = 'http://' + RT_HOST + '/REST/1.0/'
+
+
 # Extended Class
 
 class RT(rt.Rt):
@@ -210,6 +212,15 @@ def format_results(results, *args):
                 outputline.append(field +':' +  line[field] + ' ')
         output.append(''.join(outputline))
     return output
+
+def get_id_list(results):
+    '''returns list of id's in results'''
+    output = []
+    for line in results:
+        tid = line['id'].split('/')
+        output.append(tid[1]) 
+    return output
+
 
 def send_email(mail_host, from_addr, mailto, subject, body):
     '''sends an email'''

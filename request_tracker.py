@@ -393,7 +393,8 @@ def send_email(mail_host, from_addr, mailto, subject, body):
 def email_results(mailhost, from_addr, mailto, subject, body):
     '''useful for sending email of result outputs -- 
     use for sending things that are lists'''
-    if send_email(mailhost, from_addr, mailto, subject,  '\n'.join(body)):
+    if send_email(mailhost, from_addr, mailto, subject, 
+            '\n'.join([str(i) for i in body])):
         return True
     else:
         return False

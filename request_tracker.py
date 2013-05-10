@@ -10,6 +10,7 @@ import smtplib
 import ConfigParser
 from email.mime.text import MIMEText
 
+
 #################################################
 #           Configuration                       #
 #                                               #
@@ -268,12 +269,12 @@ class RT(rt.Rt):
 
     def is_active_ticket(self, queue, ticket):
         '''Returns true if ticket number supplied exists in the 
-        tech support queue and is not resolved'''
+        queue and is not resolved'''
         # the rt module doesn't work with e.g. Status!='resolved'
         # so this is a double test, checking if resolved
         # if not check it is in the tech support queue
         try:
-            search_results = self.search('TechSupport', status='resolved', 
+            search_results = self.search(queue, status='resolved', 
                     id=ticket)
             if len(search_results) > 0:
                 is_not_resolved = False

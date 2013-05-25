@@ -10,6 +10,7 @@ import smtplib
 import ConfigParser
 from email.mime.text import MIMEText
 
+
 #################################################
 #           Configuration                       #
 #                                               #
@@ -37,7 +38,6 @@ from email.mime.text import MIMEText
 # Globals
 RT_HOST = 'todo.freegeek.org'
 RT_URL = 'http://' + RT_HOST + '/REST/1.0/'
-
 
 # Extended Class
 
@@ -141,17 +141,21 @@ class RT(rt.Rt):
 
     def last_updated_by_status(self, queue, statustype, days):
         '''Returns a list of tickets (i.e. id, Subject etc)
-        with status [statustype], last updated  [days] days ago '''
+        with status [statustype], last updated  [days]  or more days ago '''
         today = datetime.date.today()
         tdelta = datetime.timedelta(days)
         cutoff = today - tdelta
-        search_string = 'Status=\'' + statustype + '\'ANDLastUpdated<\'' + str(cutoff) + '\''
+        if statustype == 'active' or statustype == 'Active':
+            status_string = '(Status=\'new\' OR Status=\'open\' OR Status=\'stalled\' OR Status=\'pending\' OR Status=\'contact\')' 
+        else:
+            status_string = 'Status=\'' + statustype + '\''
+        search_string = status_string + 'ANDLastUpdated<\'' + str(cutoff) + '\''
         search_results = self.asearch(queue, search_string) 
         return search_results
 
     def last_updated_by_field(self, queue, statustype, field, fieldtype, days):
         '''Returns a list of tickets (i.e. id, Subject etc)
-        by field, last updated  [days] days ago. Status type can be active '''
+        by field, last updated  [days] or more days ago. Status type can be active '''
         today = datetime.date.today()
         tdelta = datetime.timedelta(days)
         cutoff = today - tdelta

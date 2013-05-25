@@ -86,6 +86,15 @@ class MyTests(unittest.TestCase):
         else:
             has_results = False
         self.assertTrue(has_results)
+    
+    def test_last_updated_by_status_active(self):
+        result = self.rqt.last_updated_by_status(self.rt_queue, 'active', 1)
+        if len(result)>0:
+            has_results = True
+        else:
+            has_results = False
+        self.assertTrue(has_results)
+
 
     def test_last_updated_by_field(self):
         result = self.rqt.last_updated_by_field(self.rt_queue, 'new', 'Owner', 'nobody', 0)
@@ -288,17 +297,21 @@ class RT(rt.Rt):
 
     def last_updated_by_status(self, queue, statustype, days):
         '''Returns a list of tickets (i.e. id, Subject etc)
-        with status [statustype], last updated  [days] days ago '''
+        with status [statustype], last updated  [days]  or more days ago '''
         today = datetime.date.today()
         tdelta = datetime.timedelta(days)
         cutoff = today - tdelta
-        search_string = 'Status=\'' + statustype + '\'ANDLastUpdated<\'' + str(cutoff) + '\''
+        if statustype == 'active' or statustype == 'Active':
+            status_string = '(Status=\'new\' OR Status=\'open\' OR Status=\'stalled\' OR Status=\'pending\' OR Status=\'contact\')' 
+        else:
+            status_string = 'Status=\'' + statustype + '\''
+        search_string = status_string + 'ANDLastUpdated<\'' + str(cutoff) + '\''
         search_results = self.asearch(queue, search_string) 
         return search_results
 
     def last_updated_by_field(self, queue, statustype, field, fieldtype, days):
         '''Returns a list of tickets (i.e. id, Subject etc)
-        by field, last updated  [days] days ago. Status type can be active '''
+        by field, last updated  [days] or more days ago. Status type can be active '''
         today = datetime.date.today()
         tdelta = datetime.timedelta(days)
         cutoff = today - tdelta

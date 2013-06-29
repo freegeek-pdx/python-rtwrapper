@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 '''wrapper module for rt (python RT api module'''
 
-import unittest
 import rt
 import datetime
 import os
@@ -135,7 +134,9 @@ class RT(rt.Rt):
                 search_results = self.search(queue, id=ticket)
                 if len(search_results) > 0:
                     is_not_resolved = True
-            return is_not_resolved
+                else:
+                    is_not_resolved = False
+                return is_not_resolved
         except:
             return False
 
@@ -171,6 +172,28 @@ class RT(rt.Rt):
         updated_string = 'LastUpdated<\'' + str(cutoff) + '\''
         search_results = self.asearch(queue, status_string, field_string, updated_string) 
         return search_results
+
+    def get_creation_date(self, ticket_id):
+        '''returns creation date of ticket''' 
+        ticket = self.get_ticket(ticket_id)
+        date = ticket['Created']
+        return date
+
+    def get_created_before(self, queue ,statustype, days):
+        '''returns list of tickets created before x days. 
+        Status can be active or live(open,new) the most useful'''
+        today = datetime.date.today()
+        tdelta = datetime.timedelta(days)
+        cutoff = today - tdelta
+        if statustype == 'active' or statustype == 'Active':
+            status_string = '(Status=\'new\' OR Status=\'open\' OR Status=\'stalled\' OR Status=\'pending\' OR Status=\'contact\')' 
+        elif statustype == 'live' or statustype == 'Live':
+            status_string = '(Status=\'new\' OR Status=\'open\')' 
+        else:
+            status_string = 'Status=\'' + statustype + '\''
+        search_string = status_string + 'ANDCreated<\'' + str(cutoff) + '\''
+        search_results = self.asearch(queue, search_string) 
+        return search_results
     
     def get_status(self, ticket_id):
         '''returns status of ticket'''
@@ -198,7 +221,7 @@ class RT(rt.Rt):
         result = self.comment(ticket_id, text=msg)
         return result
 
-
+   
 
 # Additional Functions
 

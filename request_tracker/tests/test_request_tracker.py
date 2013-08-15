@@ -2,14 +2,15 @@
 ''' unit tests for wrapper module for rt (python RT api module)'''
 
 import unittest
-import rt
-import datetime
-import os
-import re
-import smtplib
-import ConfigParser
-from email.mime.text import MIMEText
-from request_tracker import *
+#import datetime
+#import os
+#import re
+#import smtplib
+#import ConfigParser
+#from email.mime.text import MIMEText
+#import rt
+
+from request_tracker.request_tracker import RT, RT_URL, format_results, email_results, send_email, load_config, get_id_list
 
 # Globals
 RT_HOST = 'todo.freegeek.org'
@@ -49,53 +50,29 @@ class MyTests(unittest.TestCase):
 
     def test_asearch(self):
         result = self.rqt.asearch(self.rt_queue, """status='pending'""")
-        if len(result)>0:
-            has_results = True
-        else:
-            has_results = False
-        self.assertTrue(has_results)
+        self.assertTrue(result)
 
     def test_last_updated_by_status(self):
         result = self.rqt.last_updated_by_status(self.rt_queue, 'pending', 3)
-        if len(result)>0:
-            has_results = True
-        else:
-            has_results = False
-        self.assertTrue(has_results)
+        self.assertTrue(result)
     
     def test_last_updated_by_status_active(self):
         result = self.rqt.last_updated_by_status(self.rt_queue, 'active', 1)
-        if len(result)>0:
-            has_results = True
-        else:
-            has_results = False
-        self.assertTrue(has_results)
+        self.assertTrue(result)
 
 
     def test_last_updated_by_field(self):
         result = self.rqt.last_updated_by_field(self.rt_queue, 'new', 'Owner', 'nobody', 0)
-        if len(result)>0:
-            has_results = True
-        else:
-            has_results = False
-        self.assertTrue(has_results)
+        self.assertTrue(result)
 
     def test_last_updated_by_field_status_active(self):
         result = self.rqt.last_updated_by_field(self.rt_queue, 'active', 'Owner', 'nobody', 0)
-        if len(result)>0:
-            has_results = True
-        else:
-            has_results = False
-        self.assertTrue(has_results)
+        self.assertTrue(result)
 
  
     def test_last_updated_by_field_custom(self):
-        result = self.rqt.last_updated_by_field(self.rt_queue, 'open', 'CF.{Ticket Source}', 'Box Brought In', 0) 
-        if len(result)>0:
-            has_results = True
-        else:
-            has_results = False
-        self.assertTrue(has_results)
+        result = self.rqt.last_updated_by_field(self.rt_queue, 'open', 'CF.{Ticket Source}', 'Box Brought In', 0)
+        self.assertTrue(result)
 
     def test_get_creation_date(self):
         date = self.rqt.get_creation_date('34716')
@@ -103,29 +80,17 @@ class MyTests(unittest.TestCase):
 
     def test_get_created_before(self):
         result = self.rqt.get_created_before(self.rt_queue, 'live', 1)
-        if len(result)>0:
-            has_results = True
-        else:
-            has_results = False
-        self.assertTrue(has_results)
+        self.assertTrue(result)
  
     def test_format_results(self):
         older = self.rqt.last_updated_by_status(self.rt_queue, 'pending', 3)
         result = format_results(older, 'id', 'Subject')
-        if len(result)>0:
-            has_results = True
-        else:
-            has_results = False
-        self.assertTrue(has_results)
+        self.assertTrue(result)
     
     def test_get_id_list(self):
         older = self.rqt.last_updated_by_status(self.rt_queue, 'pending', 3)
         result = get_id_list(older)
-        if len(result)>0:
-            has_results = True
-        else:
-            has_results = False
-        self.assertTrue(has_results)
+        self.assertTrue(result)
 
     def test_send_email(self):
         #email = raw_input('Enter an email address to send a message to: ')

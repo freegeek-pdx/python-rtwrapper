@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 setup(
     name = "request-tracker",
-    version = "0.1",
+    version = "0.1.1",
     packages = ['request_tracker'],
 
     # Project uses reStructuredText, so ensure that the docutils get

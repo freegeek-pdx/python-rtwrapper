@@ -83,7 +83,7 @@ class RT(rt.Rt):
                 pairs = {}
                 msg = msgs[i].split('\n')
                 req_id = [id for id in range(len(msg)) if self.requestors_pattern.match(msg[id]) is not None]
-                if len(req_id)==0:
+                if not req_id:
                     raise Exception('Non standard ticket.')
                 else:
                     req_id = req_id[0]
@@ -99,9 +99,9 @@ class RT(rt.Rt):
                 pairs['Requestors'] = requestors
                 for i in range(req_id, len(msg)):
                     colon = msg[i].find(': ')
-                    if colon > 0:
+                    if colon:
                         pairs[msg[i][:colon].strip()] = msg[i][colon+1:].strip()
-                if len(pairs) > 0:
+                if pairs 0:
                     items.append(pairs)    
             return items
         except:
@@ -112,7 +112,7 @@ class RT(rt.Rt):
         tech support queue'''
         try:
             search_results = self.search(queue, id=ticket)
-            if len(search_results) > 0:
+            if search_results:
                 return True
             else:
                 return False
@@ -128,11 +128,11 @@ class RT(rt.Rt):
         try:
             search_results = self.search(queue, status='resolved', 
                     id=ticket)
-            if len(search_results) > 0:
+            if not search_results:
                 is_not_resolved = False
             else:
                 search_results = self.search(queue, id=ticket)
-                if len(search_results) > 0:
+                if search_results:
                     is_not_resolved = True
                 else:
                     is_not_resolved = False

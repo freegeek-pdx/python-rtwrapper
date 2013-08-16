@@ -62,16 +62,16 @@ class MyTests(unittest.TestCase):
 
 
     def test_last_updated_by_field(self):
-        result = self.rqt.last_updated_by_field(self.rt_queue, 'new', 'Owner', 'nobody', 0)
+        result = self.rqt.last_updated_by_field(self.rt_queue, 'new', 'Owner', 'nobody', -1)
         self.assertTrue(result)
 
     def test_last_updated_by_field_status_active(self):
-        result = self.rqt.last_updated_by_field(self.rt_queue, 'active', 'Owner', 'nobody', 0)
+        result = self.rqt.last_updated_by_field(self.rt_queue, 'active', 'Owner', 'nobody', -1)
         self.assertTrue(result)
 
  
     def test_last_updated_by_field_custom(self):
-        result = self.rqt.last_updated_by_field(self.rt_queue, 'open', 'CF.{Ticket Source}', 'Box Brought In', 0)
+        result = self.rqt.last_updated_by_field(self.rt_queue, 'open', 'CF.{Ticket Source}', 'Box Brought In', -1)
         self.assertTrue(result)
 
     def test_get_creation_date(self):

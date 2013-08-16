@@ -101,7 +101,7 @@ class RT(rt.Rt):
                     colon = msg[i].find(': ')
                     if colon:
                         pairs[msg[i][:colon].strip()] = msg[i][colon+1:].strip()
-                if pairs 0:
+                if pairs:
                     items.append(pairs)    
             return items
         except:
@@ -128,7 +128,7 @@ class RT(rt.Rt):
         try:
             search_results = self.search(queue, status='resolved', 
                     id=ticket)
-            if not search_results:
+            if search_results:
                 is_not_resolved = False
             else:
                 search_results = self.search(queue, id=ticket)

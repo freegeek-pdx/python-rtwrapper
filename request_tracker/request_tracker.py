@@ -208,7 +208,21 @@ class RT(rt.Rt):
             return False
         else:
             return(self.edit_ticket(ticket_id, Status=status))
-        
+ 
+    def get_subject(self, ticket_id):
+        '''returns subject of ticket'''
+        ticket = self.get_ticket(ticket_id)
+        subject = ticket['Subject']
+        return subject
+
+    def get_field(self, ticket_id, field):
+        '''returns arbitrary field from  ticket'''
+        ticket = self.get_ticket(ticket_id)
+        result = ticket[field]
+        return result
+
+
+       
     def add_comment(self, ticket_id, msg):
         result = self.comment(ticket_id, text=msg)
         if result:

@@ -132,6 +132,14 @@ class MyTests(unittest.TestCase):
         self.rqt.set_status(34716,'new')
         self.assertTrue(rval)
 
+    def test_get_subject(self):
+        subject = self.rqt.get_subject('34716')
+        self.assertEquals(subject, 'For Unit Tests: Do Not Resolve')
+    
+    def test_get_field(self):
+        result = self.rqt.get_field('34716', 'Subject')
+        self.assertEquals(result, 'For Unit Tests: Do Not Resolve')
+
     def test_add_comment(self):
     #    import time
         # note commenting on a ticket will set status to open

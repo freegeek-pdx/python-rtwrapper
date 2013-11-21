@@ -26,7 +26,8 @@ class MyTests(unittest.TestCase):
         rtconf = self.config['rt']
         rt_user = rtconf['rt_user']
         rt_password = rtconf['rt_password']
-        self.rt_queue = rtconf['rt_queue']
+        #self.rt_queue = rtconf['rt_queue']
+        self.rt_queue = 'bugs'
         mail = self.config['mail']
         self.email = mail['email']
         self.mailhost = mail['mail_host']

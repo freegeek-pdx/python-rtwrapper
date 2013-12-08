@@ -2,7 +2,7 @@
 ''' unit tests for wrapper module for rt (python RT api module)'''
 
 import unittest
-#import datetime
+import datetime
 #import os
 #import re
 #import smtplib
@@ -22,7 +22,7 @@ class MyTests(unittest.TestCase):
     # pylint: disable=R0904
     '''Unit tests for extra functions'''
     def setUp(self):
-        self.config = load_config('rt.cfg')
+        self.config = load_config('/etc/rt.cfg')
         rtconf = self.config['rt']
         rt_user = rtconf['rt_user']
         rt_password = rtconf['rt_password']
@@ -60,6 +60,12 @@ class MyTests(unittest.TestCase):
     def test_last_updated_by_status_active(self):
         result = self.rqt.last_updated_by_status(self.rt_queue, 'active', 1)
         self.assertTrue(result)
+    
+    def test_updated_by_status_daterange(self):
+        start = datetime.date(2013, 11, 20)
+        end = datetime.date(2013, 11, 27)
+        result = self.rqt.updated_by_status_daterange(self.rt_queue, 'pending', start, end)
+        self.assertEquals(len(result), 2)
 
 
     def test_last_updated_by_field(self):
@@ -72,7 +78,7 @@ class MyTests(unittest.TestCase):
 
  
     def test_last_updated_by_field_custom(self):
-        result = self.rqt.last_updated_by_field(self.rt_queue, 'open', 'CF.{Ticket Source}', 'Box Brought In', -1)
+        result = self.rqt.last_updated_by_field('TechSupport', 'new', 'CF.{Ticket Source}', 'Box Brought In', -1)
         self.assertTrue(result)
 
     def test_get_creation_date(self):
@@ -119,7 +125,7 @@ class MyTests(unittest.TestCase):
         self.assertEquals(rt_user, 'user')
 
     def test_get_status(self):
-        status = self.rqt.get_status('34716')
+        status = self.rqt.get_status('38782')
         self.assertEquals(status, 'new')
 
     def test_set_status(self):
@@ -129,8 +135,9 @@ class MyTests(unittest.TestCase):
         self.assertEquals(status, 'open')
 
     def test_set_status_true(self):
-        rval = self.rqt.set_status(34716,'open')
-        self.rqt.set_status(34716,'new')
+        self.rqt.set_status(38785,'new')
+        rval = self.rqt.set_status('38785','open')
+        self.rqt.set_status('38785', 'new')
         self.assertTrue(rval)
 
     def test_get_subject(self):

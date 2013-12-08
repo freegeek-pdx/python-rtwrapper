@@ -1,4 +1,5 @@
 *.pyc
+*.swp
 rt-1.0.3
 rt-1.0.3/*
 build

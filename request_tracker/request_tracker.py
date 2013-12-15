@@ -154,6 +154,19 @@ class RT(rt.Rt):
         search_results = self.asearch(queue, search_string) 
         return search_results
 
+    def updated_by_status_daterange(self, queue, statustype, start, end):
+        '''return a list of ticket updated between start and end 
+        where Status == statustype. Takes datetime object for start and end'''
+        if statustype == 'active' or statustype == 'Active':
+            status_string = '(Status=\'new\' OR Status=\'open\' OR Status=\'stalled\' OR Status=\'pending\' OR Status=\'contact\')' 
+        else:
+            status_string = 'Status=\'' + statustype + '\''
+        search_string = status_string + 'ANDLastUpdated>\'' + str(start) + '\'ANDLastUpdated<\'' + str(end) + '\''
+        search_results = self.asearch(queue, search_string) 
+        return search_results
+
+
+
     def last_updated_by_field(self, queue, statustype, field, fieldtype, days):
         '''Returns a list of tickets (i.e. id, Subject etc)
         by field, last updated  [days] or more days ago. Status type can be active '''
@@ -203,11 +216,11 @@ class RT(rt.Rt):
 
     def set_status(self, ticket_id, status):
         '''sets status of ticket'''
-        if not status in ['new','open', 'stalled', 'pending', 'contact', 
+        if not status in ['new', 'open', 'stalled', 'pending', 'contact', 
                 'resolved', 'rejected', 'deleted']:
             return False
         else:
-            return(self.edit_ticket(ticket_id, Status=status))
+            return self.edit_ticket(ticket_id, Status=status)
  
     def get_subject(self, ticket_id):
         '''returns subject of ticket'''
